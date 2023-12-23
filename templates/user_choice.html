@@ -1,0 +1,19 @@
+{% extends "base_template.html" %}
+{%block title %}{{my_title}}{% endblock %}
+
+{% block content %}
+
+<h1>What type of flashcards?</h1>
+
+<form class="" action="settings" method="post">
+
+      <input class="button0" type="submit" value="OG Math Word Problems" name="choice"> <br>
+      
+      {% for i in range(cnt) %}
+            <input class="button0" type="submit" value={{tst_csvs[i]}} name="choice">
+            <br>
+
+      {% endfor %}
+      
+</form>
+{% endblock %}

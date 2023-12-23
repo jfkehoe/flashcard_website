@@ -1,0 +1,13 @@
+{% extends "base_template.html" %}
+{%block title %}{{my_title}}{% endblock %}
+
+{% block content %}
+<h1>Score: {{score}}</h1>
+<p>Correct: {{correct}}</p>
+<p>Incorrect: {{wrong}}</p>
+<form class="" action="/" method="post">
+  <div class="leftPane">
+      <input class="button" type="submit" value="Home" name="ans">
+  </div>
+
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base_template.html" %}
+{%block title %}{{my_title}}{% endblock %}
+
+{% block content %}
+<p>Setting Page</p>
+<p>Number of questions: {{cnt}}</p>
+<form class="" action="question" method="post">
+  <div class="leftPane">
+      <input class="button" type="submit" value="Go!">
+  </div>
+
+</form>
+{% endblock %}

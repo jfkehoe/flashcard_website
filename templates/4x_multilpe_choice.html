@@ -1,0 +1,22 @@
+{% extends "base_template.html" %}
+{%block title %}{{my_title}}{% endblock %}
+
+{% block content %}
+
+<h1>{{my_question}}</h1>
+
+<form class="" action="#" method="post">
+  <div class="leftPane">
+      <input class="button" type="submit" value={{possible_ans[0]}} name="0">
+  </div>
+  <div class="rightPane">
+    <input class="button" type="submit" value={{possible_ans[1]}} name="1">
+  </div>
+  <div class="leftPane">
+    <input class="button" type="submit" value={{possible_ans[2]}} name="2">
+  </div>
+  <div class="rightPane">
+    <input class="button" type="submit" value={{possible_ans[3]}} name="3">
+  </div>
+</form>
+{% endblock %}

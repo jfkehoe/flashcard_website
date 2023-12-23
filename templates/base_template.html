@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href={{ url_for('static',filename='work.css') }}>
+  </head>
+  <body>
+    {% with messsages = get_flashed_messages() %}
+      {% if messsages %}
+        {% for msg in messsages %}
+          <p>{{msg}}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}
+    {% endblock %}
+
+  </body>
+</html>
