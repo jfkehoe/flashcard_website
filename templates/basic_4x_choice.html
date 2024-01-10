@@ -1,30 +1,63 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title>{% block title %}{{my_title}}{% endblock %}</title>
-    <link rel="stylesheet" type="text/css" href={{ url_for('static',filename='work.css') }}>
-  </head>
-  <body>
-    {% with messsages = get_flashed_messages() %}
-      {% if messsages %}
-        {% for msg in messsages %}
-          <p>{{msg}}</p>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}{{my_title}}{% endblock %}</title>
+  <link rel="stylesheet" type="text/css" href={{ url_for('static',filename='work.css' ) }}>
+  <script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+      function submitForm(imageValue) {
+        document.getElementById('ans').value = imageValue;
+        document.getElementById('imageForm').submit();
+      }
+    </script>
+  
+</head>
+
+<body>
+  {% with messsages = get_flashed_messages() %}
+  {% if messsages %}
+  {% for msg in messsages %}
+  <p>{{msg}}</p>
+  {% endfor %}
+  {% endif %}
+  {% endwith %}
 
 
-<h3>Remaining: {{remaining_cnt}}</h3>
-<h1>{{my_question}}</h1>
+  <h3>Remaining: {{remaining_cnt}}</h3>
+  <h1>
+    <div class="math-container">{{my_question}}</div>
+  </h1>
 
+  <form id="imageForm" action="#" method="post">
+    <input type="hidden" id="ans" name="ans" value="">
+    <button class="button" onclick="submitForm('__one')">
+      <div class="math-container">{{possible_answers[0]}}</div>
+    </button><br>
+    <button class="button" onclick="submitForm('__two')">
+      <div class="math-container">{{possible_answers[1]}}</div>
+    </button><br>
+    <button class="button" onclick="submitForm('__three')">
+      <div class="math-container">{{possible_answers[2]}}</div>
+    </button><br>
+    <button class="button" onclick="submitForm('__four')">
+      <div class="math-container">{{possible_answers[3]}}</div>
+    </button><br>
+
+  </form>
+
+
+
+  <!-- 
 <form class="" action="#" method="post">
     <input class="button" type="submit" value="{{possible_answers[0]}}" name="ans" {{disable_list[0]}}>
     <input class="button" type="submit" value="{{possible_answers[1]}}" name="ans" {{disable_list[1]}}>
     <input class="button" type="submit" value="{{possible_answers[2]}}" name="ans" {{disable_list[2]}}>
     <input class="button" type="submit" value="{{possible_answers[3]}}" name="ans" {{disable_list[3]}}>
 </form>
+ -->
 
+</body>
 
-  </body>
 </html>

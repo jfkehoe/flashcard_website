@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}{{my_title}}{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href={{ url_for('static',filename='work.css') }}>
+  </head>
+  <body>
+    {% with messsages = get_flashed_messages() %}
+      {% if messsages %}
+        {% for msg in messsages %}
+          <p>{{msg}}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+
+<h3>Remaining: {{remaining_cnt}}</h3>
+<img src="{{img}}" />
+
+<form class="" action="#" method="post">
+    <input class="button" type="submit" value="{{possible_answers[0]}}" name="ans" {{disable_list[0]}}>
+    <input class="button" type="submit" value="{{possible_answers[1]}}" name="ans" {{disable_list[1]}}>
+    <input class="button" type="submit" value="{{possible_answers[2]}}" name="ans" {{disable_list[2]}}>
+    <input class="button" type="submit" value="{{possible_answers[3]}}" name="ans" {{disable_list[3]}}>
+</form>
+
+
+  </body>
+</html>

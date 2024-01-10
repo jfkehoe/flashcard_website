@@ -26,24 +26,32 @@ body h1{
 .button{
 	font: normal 30px Arial, Helvetica, sans-serif;
 	line-height:1.6em;
-	margin:0;
-	width: 100%;
-	border: 0;
+	margin:10px;
+	width: 95%;
+	border: 3px solid grey;
 }
 
 .button:disabled {
-	color:#c00
+	color:#c00;
+	border:#c00 3px solid;
 }
 
 .button0{
 	font: normal 30px Arial, Helvetica, sans-serif;
 	line-height:1.6em;
 	margin:10px;
-	width: 40%;
+	width: 95%;
 	border: 3px solid black;
+	float:center;
 }
 
 .leftPane{
+	float:left;
+	text-align: center;
+	width: 48%;
+}
+
+.leftPaneold{
   float:left;
   text-align: center;
   width: 48%;

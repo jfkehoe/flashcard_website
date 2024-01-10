@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}{{my_title}}{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href={{ url_for('static',filename='work.css') }}>
+    <script>
+        function submitForm(imageValue) {
+            document.getElementById('ans').value = imageValue;
+            document.getElementById('imageForm').submit();
+        }
+    </script>
+  </head>
+  <body>
+    {% with messsages = get_flashed_messages() %}
+      {% if messsages %}
+        {% for msg in messsages %}
+          <p>{{msg}}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+
+<h3>Remaining: {{remaining_cnt}}</h3>
+<h1>{{my_question}}</h1>
+
+<form id="imageForm" action="#" method="post">
+        <input type="hidden" id="ans" name="ans" value="">
+        <label onclick="submitForm('{{possible_answers[0]}}')"> <img src="{{img_path}}{{possible_answers[0]}}" alt="{{possible_answers[0]}}"> </label>  <br>
+        <label onclick="submitForm('{{possible_answers[1]}}')"> <img src="{{img_path}}{{possible_answers[1]}}" alt="{{possible_answers[1]}}"> </label> <br>
+        <label onclick="submitForm('{{possible_answers[2]}}')"> <img src="{{img_path}}{{possible_answers[2]}}" alt="{{possible_answers[2]}}"> </label> <br>
+        <label onclick="submitForm('{{possible_answers[3]}}')"> <img src="{{img_path}}{{possible_answers[3]}}" alt="{{possible_answers[3]}}"> </label> <br>
+    </form>
+
+  </body>
+</html>
+
+

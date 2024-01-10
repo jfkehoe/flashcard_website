@@ -12,6 +12,8 @@ app = Flask(__name__)
 csv_path = os.path.dirname(__file__) + "/csvs"
 csv_path.replace('\\', '/')
 
+app.config["UPLOAD_FOLDER"] = "staic/pics"
+
 #logfile = open("math_tests.log", "a")
 
 def log(txt, pre=""):
@@ -42,10 +44,11 @@ def settings():
     choice = session["choice"]
     log(f"Test Choice: {choice}", pre="START")
     if session["choice"] == "OG Math Word Problems":
-        session["number_of_questions_to_ask"] = 10
+        session["number_of_questions_to_ask"] = 20
         session["max_val"] = 1000
         session["score"] = 0
         current_question = None
+        session["current_question"] = None
         return render_template("settings.html", my_title="OG Math Word Problems", cnt=session["number_of_questions_to_ask"])
     elif session["choice"] in session["csvs"]:
         #prep the csv here
@@ -99,12 +102,28 @@ def settings_old():
 
 @app.route("/basic_4x", methods=["POST", "GET"])
 def basic_4x():
+    print("Called basic_4x")
     new_question = True
     if session["basic_4x"]["start_flag"]:
         #no need to check the previous result, as there was none
         session["basic_4x"]["start_flag"] = False
     else:
-        last_ans = request.form["ans"]
+        if session["basic_4x"]["current_possible_answer_list"][0].endswith(".png"):
+            last_ans = request.form.get("ans")
+            #can't get the value, need to get the src name somehow.  
+        else:
+            last_ans = request.form["ans"]
+
+        #complete hack
+        #somehow my tex strings are getting murdered coming back from the js function
+        #so I will pull the correct string from the session answer list
+        silly_list = ["__one", "__two", "__three", "__four"]
+        if last_ans in silly_list:
+            idx = silly_list.index(last_ans)
+            last_ans = session["basic_4x"]["current_possible_answer_list"][idx]
+
+        print(f"Last Answer: {last_ans}")
+
         c_question = session["basic_4x"]["current_question"]
         right_ans = session["basic_4x"]["questions"][c_question]["right answer"]
         if right_ans == last_ans:
@@ -147,37 +166,42 @@ def basic_4x():
         wrong_answers = session["basic_4x"]["questions"][cq]["wrong answers"][:]
         random.shuffle(wrong_answers)
         possible_answers = [right_ans] + wrong_answers[0:3]
-        random.shuffle(possible_answers)
+        random.shuffle(possible_answers)    
         session["basic_4x"]["current_possible_answer_list"] = possible_answers
 
     #might want to enhance this later... 
     #disable answering already wrongly answered questions. 
     
+    cq = session["basic_4x"]["current_question"]
+
     possible_answers = session["basic_4x"]["current_possible_answer_list"]
     print(f"possible answers: {possible_answers}")
-    return render_template("basic_4x_choice.html", my_title="Question", remaining_cnt=remaining_question_cnt, my_question=session["basic_4x"]["current_question"], possible_answers=session["basic_4x"]["current_possible_answer_list"], disable_list=session["disabled_list"])
+    if cq.endswith(".png") and not possible_answers[0].endswith(".png"):
+        print("Using image template")
+        return render_template("4x_choice_pic.html", my_title="Question", remaining_cnt=remaining_question_cnt, img=f"static/pics/{cq}", possible_answers=session["basic_4x"]["current_possible_answer_list"], disable_list=session["disabled_list"] )
+    elif cq.endswith(".png"):
+        return render_template("4x_choice_pics.html", img_path="static/pics/", my_title="Question", remaining_cnt=remaining_question_cnt, img=f"static/pics/{cq}", possible_answers=session["basic_4x"]["current_possible_answer_list"], disable_list=session["disabled_list"] )
+    elif possible_answers[0].endswith(".png"):
+        return render_template("4x_choice_pics_text_prompt.html", img_path="static/pics/", my_title="Question", remaining_cnt=remaining_question_cnt, my_question=cq, possible_answers=session["basic_4x"]["current_possible_answer_list"], disable_list=session["disabled_list"] )
+
+    else:
+        return render_template("basic_4x_choice.html", my_title="Question", remaining_cnt=remaining_question_cnt, my_question=session["basic_4x"]["current_question"], possible_answers=session["basic_4x"]["current_possible_answer_list"], disable_list=session["disabled_list"])
     
 
 
 @app.route("/question", methods=["POST"])
 def question():
-    global current_question
     new_question = False
     if session["cnt"] == 0:
         session["correct cnt"] = 0
         session["wrong cnt"] = 0
         new_question = True
-    elif current_question.check_correct(request.form["ans"]):
+    elif session["right_answer"] == request.form["ans"]:
         log("Correct Answer")
         session["correct cnt"] += 1
         session["score"] += 1
         new_question = True
-    elif not current_question.check_correct(request.form["ans"]) and session["learn_mode"] == 0:
-        c_ans = request.form["ans"]
-        log(f"Wrong answer: {c_ans}")
-        session["wrong cnt"] += 1
-        session["score"] -= .25
-    elif not current_question.check_correct(request.form["ans"]) and session["learn_mode"] == 1:
+    elif not session["right_answer"] == request.form["ans"]:
         #need to set disabled list correctly
         wrong_ans = request.form["ans"]
         log(f"Wrong answer: {wrong_ans}")
@@ -207,15 +231,13 @@ def question():
         log(f"Current question: {current_question.text}")
 
         session["possible_answers"] = current_question.get_possible_answers(4)
+        session["right_answer"] = current_question.right_answer()
+        session["current_question"] = current_question.text
         print(session["possible_answers"])
         log("Possible answers: %s"%(str(session["possible_answers"])))
         session["cnt"] += 1
 
-    q = current_question
-    #session["current_question"] = q
-    my_question = q.text
-
-    return render_template("4x_multiple_choice.html", my_title="Question", my_question=my_question, possible_ans=session["possible_answers"], disable_list=session["disabled_list"])
+    return render_template("4x_multiple_choice.html", my_title="Question", my_question=session["current_question"], possible_ans=session["possible_answers"], disable_list=session["disabled_list"])
 
 @app.route("/summary")
 def summary():
