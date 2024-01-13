@@ -1,0 +1,72 @@
+*{
+	margin:0;
+	padding:0;
+}
+
+
+body{
+	background-color:#f4f4f4;
+	color:#555555;
+
+	font: normal 30px Arial, Helvetica, sans-serif;
+	line-height:1.6em;
+	margin:0;
+}
+
+a{
+	text-decoration: none;
+	color:#000;
+}
+
+body h1{
+  text-align: center;
+  padding: 10px; 
+}
+
+.button{
+	font: normal 30px Arial, Helvetica, sans-serif;
+	line-height:1.6em;
+	margin:10px;
+	width: 95%;
+	border: 3px solid grey;
+}
+
+.button:disabled {
+	color:#c00;
+	border:#c00 3px solid;
+}
+
+.button0{
+	font: normal 30px Arial, Helvetica, sans-serif;
+	line-height:1.6em;
+	margin:10px;
+	width: 95%;
+	border: 3px solid black;
+	float:center;
+}
+
+.leftPane{
+	float:left;
+	text-align: center;
+	width: 48%;
+}
+
+.leftPaneold{
+  float:left;
+  text-align: center;
+  width: 48%;
+  border: 3px solid black;
+  /* padding: 10px; */
+  margin: 10px;
+  box-sizing: border-box;
+}
+
+.rightPane{
+  float:right;
+  text-align: center;
+  width: 48%;
+  border: 3px solid black;
+  /* padding: 10px; */
+  margin: 10px;
+  box-sizing: border-box;
+}
