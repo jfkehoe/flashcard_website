@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}{{my_title}}{% endblock %}</title>
+  <link rel="stylesheet" type="text/css" href={{ url_for('static',filename='work_v2.css' ) }}>
+  <script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+  
+</head>
+
+
+{% block content %}
+{% for i in range(cnt) %}
+<div class="math-container">{{my_lines[i]}}</div>
+<br>
+
+{% endfor %}
+{% endblock %}

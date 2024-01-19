@@ -186,8 +186,34 @@ def basic_4x():
 
     else:
         return render_template("basic_4x_choice.html", my_title="Question", remaining_cnt=remaining_question_cnt, my_question=session["basic_4x"]["current_question"], possible_answers=session["basic_4x"]["current_possible_answer_list"], disable_list=session["disabled_list"])
-    
 
+@app.route("/display_check")
+def list_csv():
+    session["csvs"] = [i for i in sorted(os.listdir(csv_path)) if i.endswith("csv")]
+    return render_template("display_choice.html", cnt=len(session["csvs"]), tst_csvs=session["csvs"])
+
+
+
+@app.route("/review_csv_display", methods=["POST"])
+def display_check():
+    lines = []
+    last_ans = request.form["choice"]
+    line_idx = 2
+
+    with open(csv_path + "/" + last_ans, newline='', encoding="utf-8") as f:
+        reader = csv.reader(f)
+        for r in list(reader)[1:]:
+            col_idx = 65
+            #idx 0 expected to be count
+            #r is [Question, Right Answer, Wrong Answers...]
+            for cell in r:
+                if cell != "":                    
+                    display_str = str(line_idx) + chr(col_idx) + "  " + cell
+                    lines.append(display_str)
+                    col_idx += 1
+            line_idx +=1 
+            
+    return render_template("display_check.html", my_title=last_ans, cnt=len(lines), my_lines=lines)
 
 @app.route("/question", methods=["POST"])
 def question():
