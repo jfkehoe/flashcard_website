@@ -168,6 +168,8 @@ def basic_4x():
         possible_answers = [right_ans] + wrong_answers[0:3]
         random.shuffle(possible_answers)    
         session["basic_4x"]["current_possible_answer_list"] = possible_answers
+        #my own hacks continue to plague me!
+        session["basic_4x"]["this one"] = ["__one", "__two", "__three", "__four"][possible_answers.index(right_ans)]
 
     #might want to enhance this later... 
     #disable answering already wrongly answered questions. 
@@ -185,7 +187,7 @@ def basic_4x():
         return render_template("4x_choice_pics_text_prompt.html", img_path="static/pics/", my_title="Question", remaining_cnt=remaining_question_cnt, my_question=cq, possible_answers=session["basic_4x"]["current_possible_answer_list"], disable_list=session["disabled_list"] )
 
     else:
-        return render_template("basic_4x_choice.html", my_title="Question", remaining_cnt=remaining_question_cnt, my_question=session["basic_4x"]["current_question"], possible_answers=session["basic_4x"]["current_possible_answer_list"], disable_list=session["disabled_list"])
+        return render_template("basic_4x_choice.html", this_one=session["basic_4x"]["this one"], my_title="Question", remaining_cnt=remaining_question_cnt, my_question=session["basic_4x"]["current_question"], possible_answers=session["basic_4x"]["current_possible_answer_list"], disable_list=session["disabled_list"])
 
 @app.route("/display_check")
 def list_csv():

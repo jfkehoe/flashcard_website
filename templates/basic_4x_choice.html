@@ -6,11 +6,25 @@
   <title>{% block title %}{{my_title}}{% endblock %}</title>
   <link rel="stylesheet" type="text/css" href={{ url_for('static',filename='work_v2.css' ) }}>
   <script type="text/javascript" async
-    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+   var good = new Audio("/static/good.wav");
+  var bad = new Audio("/static/bad.wav");
       function submitForm(imageValue) {
+        if (imageValue == "{{this_one}}") {
+          good.play();
+        } else {
+        bad.play();
+        }
         document.getElementById('ans').value = imageValue;
-        document.getElementById('imageForm').submit();
+        setTimeout(function() {
+          document.getElementById('imageForm').submit();
+        }, 500); // Adjust the delay time as needed
+        event.preventDefault();
       }
+      //no idea if this is needed
+      window.addEventListener('beforeunload', function() {
+        audio.play();
+    });
     </script>
   
 </head>
