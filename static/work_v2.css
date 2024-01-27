@@ -23,6 +23,15 @@ body h1{
   padding: 10px; 
 }
 
+.entry{
+	font: normal 30px Arial, Helvetica, sans-serif;
+	line-height:1.6em;
+	margin:10px;
+	width: 95%;
+	border: 3px solid grey;
+}
+
+
 .button{
 	font: normal 30px Arial, Helvetica, sans-serif;
 	line-height:1.6em;
