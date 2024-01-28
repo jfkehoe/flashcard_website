@@ -172,7 +172,7 @@ def flashcard():
         last_ans = request.form["ans"]
         log(f"Free form ans {last_ans}")
         try:
-            c_ans = float(last_ans)
+            c_ans = calc_answer(last_ans)
         except:
             log(f"User gave none NaN to question {last_ans}")
             c_ans = None
