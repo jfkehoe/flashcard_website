@@ -1,5 +1,6 @@
 from flask import Flask, redirect, url_for, render_template, request, session, flash
 import os
+from .flashcardquestion import *
 from . import math_problem_1
 from . import math_problem_2
 import time
@@ -15,7 +16,10 @@ csv_path.replace('\\', '/')
 
 app.config["UPLOAD_FOLDER"] = "staic/pics"
 
-#logfile = open("math_tests.log", "a")
+#I was putting all of this data into session, but it overwhelmed the 4k storage space of the cookie
+global_csv_dict = dict()
+#idx is the line number (shifted by 2), the order in which the lines were read in
+#global_csv_dict["name_of_csv_file"][idx] = flashcardquestion()
 
 def log(txt, pre=""):
     global logfile
@@ -52,11 +56,10 @@ def calc_answer(in_prob, in_ans=None):
 
 @app.route("/", methods=["POST", "GET"])
 def home():
+    session.clear()
     session["csvs"] = [i for i in sorted(os.listdir(csv_path)) if i.endswith("csv")]
     tst_csvs = session["csvs"]
     log(f"Start session {tst_csvs}", "\n")
-    session["user"] = ""
-    print(tst_csvs)
     return render_template("user_choice.html", my_title="Intro", cnt = len(tst_csvs), tst_csvs=tst_csvs)
 
 @app.route("/settings", methods=["POST"])
@@ -82,93 +85,57 @@ def settings():
     else:
         return render_template("error.html")
 
+def read_csv(csv_name):
+    global global_csv_dict
+    if csv_name in global_csv_dict:
+        log(f"Rereading {csv_name}")
+        
+    global_csv_dict[csv_name] = []
+    with open(csv_path + "/" + csv_name, newline='', encoding="utf-8") as f:
+        reader = csv.reader(f)
+        #first line has column headers, which I will assume match what I want
+        for init_line in list(reader)[1:]:
+            #remove any blank entries in csv line
+            #> question, right ans, wrong, wrong, wrong,,,,,,
+            cleaned_line = [i for i in init_line if i != ""] 
+            
+            question_obj = question_from_csv_line(init_line)
+            global_csv_dict[csv_name].append(question_obj)
+
 def flashcard_setup():
+    global global_csv_dict
     log("Running flashcard_setup")
     #essentially globals
+    csv_name = session["choice"]
+
     session["csv_flashcard"] = dict()
-    session["csv_flashcard"]["questions"] = dict()
+    session["csv_flashcard"]["csv_name"] = csv_name
+    session["csv_flashcard"]["current_question_idx"] = None
     session["csv_flashcard"]["current_question"] = None
     session["correct cnt"] = 0
     session["wrong cnt"] = 0
     
-
-    #two more globals set at the bottom 
-
-    #csv
-    #Question, Right Answer, Wrong Answer, Wrong Answer...
-    #If question or right answer ends with .png it is based on an image and changes the mode
-    #If there is no wrong answers or no right answer it is a free form instead of multiple choice
-    #All expressions in free form with be checked with eval statements
-    with open(csv_path + "/" + session["choice"], newline='', encoding="utf-8") as f:
-        reader = csv.reader(f)
-        for init_line in list(reader)[1:]:
-            #all question types have similar fields 
-            question = init_line[0]
-            session["csv_flashcard"]["questions"][question] = dict()
-            session["csv_flashcard"]["questions"][question]["remaining"] = 1
-            #remaining will be set to 0 if the question is not valid
-            
-            #clean up the blank spaces in the line, this helps classify the questions
-            cleaned_line = [i for i in init_line if i != ""] 
-            if len(cleaned_line) == 1:
-                session["csv_flashcard"]["questions"][question]["type"] = "free_form"
-                ans = calc_answer(question)
-                session["csv_flashcard"]["questions"][question]["right answer"] = ans
-                if not ans:
-                    log(f"Issue with question, ignoring:: {question}  :: {ans}")
-                    session["csv_flashcard"]["questions"][question]["remaining"] = 0 
-
-            elif len(cleaned_line) == 2:
-                session["csv_flashcard"]["questions"][question]["type"] = "free_form"
-                ans = calc_answer(cleaned_line[1])
-                session["csv_flashcard"]["questions"][question]["right answer"] = ans
-                if not ans:
-                    log(f"Issue with question, ignoring:: {question} :: {cleaned_line[1]}  :: {ans}")
-                    session["csv_flashcard"]["questions"][question]["remaining"] = 0 
-
-            elif cleaned_line[1].endswith(".png") and cleaned_line[2].endswith(".png"):
-                session["csv_flashcard"]["questions"][question]["type"] = "flashcard_4x_choice_pics"
-            elif cleaned_line[1].endswith(".png") and cleaned_line[2].endswith(".png"):
-                session["csv_flashcard"]["questions"][question]["type"] = "flashcard_4x_choice_pic"
-            elif cleaned_line[1].endswith(".png") and cleaned_line[2].endswith(".png"):
-                session["csv_flashcard"]["questions"][question]["type"] = "flashcard_4x_choice_pics_text_prompt"
-            else:
-                session["csv_flashcard"]["questions"][question]["type"] = "flashcard_text_only"
-
-            if session["csv_flashcard"]["questions"][question]["type"] != "free_form":
-                session["csv_flashcard"]["questions"][question]["remaining"] = 1
-                session["csv_flashcard"]["questions"][question]["right answer"] = cleaned_line[1]
-                session["csv_flashcard"]["questions"][question]["wrong answers"] = cleaned_line[2:]
-
-    #globals
-    #score starts high and goes down. 
-    session["score"] = len(session["csv_flashcard"]["questions"])
-    session["csv_flashcard"]["current_question"] = None
-    #doing away with the start flag, if no current question is selected and we are in the loop, assume we don't need to eval
-    #session["csv_flashcard"]["start_flag"] = True
+    read_csv(csv_name)
+    number_of_questions = len(global_csv_dict[csv_name])
+    session["csv_flashcard"]["idxes"] = list(range(0, number_of_questions))
+    session["score"] = number_of_questions
+    
             
 @app.route("/flashcard", methods=["POST", "GET"])
 def flashcard():
+    global global_csv_dict
+    csv_name = session["csv_flashcard"]["csv_name"]
     #initial setup, parse csv
     #-- called before we got here
 
-    #There are a few variables that are live for a given game loop
-    #session["csv_flashcard"]["current_question"]
-    #session["csv_flashcard"]["disabled_list"]
-    #session["csv_flashcard"]["current_possible_answer_list"]
-    #session["csv_flashcard"]["current_right_answer"]
-    #session["csv_flashcard"]["current_type"]
-
-    #current_question let's us reference the session["csv_flashcard"]["questions"] which stores all the data for all of the questions
-    #session["csv_flashcard"]["disabled_list"] is a list of incorrect answers alread chosen, so we can disable the user from guessing them again
-    #session["csv_flashcard"]["current_possible_answer_list"] is the list of possible choices we give to the user, this is randomized each time a new question is chosen
-    #session["csv_flashcard"]["current_right_answer"] obvious, I hope
-
     #evaluate last answer
+    cq_idx = session["csv_flashcard"]["current_question_idx"]
+
     cq = session["csv_flashcard"]["current_question"]
     log(f"Current Question {cq}")
     #if no current question is selected and we are in the loop, assume we don't need to eval
-    if cq and session["csv_flashcard"]["current_type"] == "free_form":
+    if cq_idx != None and session["csv_flashcard"]["current_type"] == "free_form":
+        cq_obj = global_csv_dict[csv_name][cq_idx]
         last_ans = request.form["ans"]
         log(f"Free form ans {last_ans}")
         try:
@@ -177,16 +144,17 @@ def flashcard():
             log(f"User gave none NaN to question {last_ans}")
             c_ans = None
         
-        if c_ans == session["csv_flashcard"]["current_right_answer"]:
-            session["csv_flashcard"]["questions"][cq]["remaining"] -= 1
+        if cq_obj.check_answer(c_ans):
+            session["csv_flashcard"]["idxes"].remove(cq_idx)
             session["correct cnt"] += 1
-            session["csv_flashcard"]["current_question"] = None
+            session["csv_flashcard"]["current_question_idx"] = None
         else:
-            session["csv_flashcard"]["questions"][cq]["remaining"] += 1
+            session["csv_flashcard"]["idxes"].append(cq_idx)
             session["wrong cnt"] += 1
             #probably need a better feedback mechanism so the user knows when they got it wrong
 
-    elif cq:
+    elif cq_idx != None:
+        cq_obj = global_csv_dict[csv_name][cq_idx]
         #currently this must be a multiple choice, they are all handled the same way
         last_ans = request.form["ans"]
         #return answer is expected to be an int corresponding to the possible answer array
@@ -195,49 +163,49 @@ def flashcard():
         #this should not break if the webpage is returning the right value
         #I should have an assert that won't break the website. 
         c_ans = session["csv_flashcard"]["current_possible_answer_list"][int(last_ans)]
-        log(f"Current Question: {cq} Current Answer: {c_ans}")
+        log(f"Current Question: {cq_obj.question} Current Answer: {c_ans}")
         if c_ans == session["csv_flashcard"]["current_right_answer"]:
-            session["csv_flashcard"]["questions"][cq]["remaining"] -= 1
+            indices = session["csv_flashcard"]["idxes"]
+            print(f"Removing {cq_idx} index from {indices}")
+            session["csv_flashcard"]["idxes"].remove(cq_idx)
+            indices = session["csv_flashcard"]["idxes"]
+            print(f"Removed {cq_idx} index from {indices}")
             session["correct cnt"] += 1
-            session["csv_flashcard"]["current_question"] = None
+            session["csv_flashcard"]["current_question_idx"] = None        
         else:
-            session["csv_flashcard"]["questions"][cq]["remaining"] += 1
+            session["csv_flashcard"]["idxes"].append(cq_idx)
             session["wrong cnt"] += 1
             session["csv_flashcard"]["disabled_list"][int(last_ans)] = "disabled"
 
     #evaluate if all answers have been completed, if so go to summary
-    remaining_question_cnt = sum([session["csv_flashcard"]["questions"][i]["remaining"] for i in session["csv_flashcard"]["questions"]])
+    indices = session["csv_flashcard"]["idxes"]
+    print(f"Remaining indices: {indices}")
+    remaining_question_cnt = len(indices)
 
     if remaining_question_cnt == 0:
         #we are done, go to summary
         return redirect(url_for("summary"))
 
     #choose next question
-    if not session["csv_flashcard"]["current_question"]:
-        #Pick a question
-        #I want questions that have more than copy to appear multiple times in the list
-        remaining_questions = []
-        for q in session["csv_flashcard"]["questions"]:
-            for i in range(session["csv_flashcard"]["questions"][q]["remaining"]):
-                remaining_questions.append(q)
+    if not session["csv_flashcard"]["current_question_idx"]:
+        csv_name = session["csv_flashcard"]["csv_name"]
+        cq_idx = random.choice(session["csv_flashcard"]["idxes"])
+        cq_obj = global_csv_dict[csv_name][cq_idx]
 
-        cq = random.choice(remaining_questions)
-        right_answer =  session["csv_flashcard"]["questions"][cq]["right answer"]
-        type_ = session["csv_flashcard"]["questions"][cq]["type"]
+        right_answer = cq_obj.right_answer
+        type_ = cq_obj.type
         
-        #For the multiple choice, select some wrong answers
         if type_ == "free_form":
             this_one = None
             possible_answers = []
         else:
-            wrong_answers = session["csv_flashcard"]["questions"][cq]["wrong answers"][:]
-            random.shuffle(wrong_answers)
-            possible_answers = [right_answer] + wrong_answers[0:3]
-            random.shuffle(possible_answers)
+            #possible answers is randomized 3 wrong answers and one right answer
+            possible_answers = cq_obj.give_four_choices()
             this_one = possible_answers.index(right_answer)    
         
-        log(f"Setting current question {cq}")
-        session["csv_flashcard"]["current_question"] = cq    
+        log(f"Setting current question {cq_obj.question}")
+        session["csv_flashcard"]["current_question_idx"] = cq_idx
+        session["csv_flashcard"]["current_question"] = cq_obj.question    
         session["csv_flashcard"]["current_right_answer"] = right_answer
         session["csv_flashcard"]["disabled_list"] = [""] * 4
         session["csv_flashcard"]["current_type"]= type_ 
@@ -266,7 +234,7 @@ def flashcard():
     elif type_ == "flashcard_4x_choice_pics_text_prompt":
         return render_template("4x_choice_pics_text_prompt.html", this_one=session["csv_flashcard"]["this_one"], img_path="static/pics/", my_title="Question", remaining_cnt=remaining_question_cnt, my_question=cq, possible_answers=session["csv_flashcard"]["current_possible_answer_list"], disable_list=session["csv_flashcard"]["disabled_list"] )
     else:
-        log(f"Invalid question type {_type}")
+        log(f"Invalid question type {type_}")
         return render_template("error.html")
 
 
