@@ -125,6 +125,9 @@ def flashcard_setup():
 def flashcard():
     global global_csv_dict
     csv_name = session["csv_flashcard"]["csv_name"]
+    if csv_name not in global_csv_dict:
+        read_csv(csv_name)
+
     #initial setup, parse csv
     #-- called before we got here
 
