@@ -168,6 +168,7 @@ def read_quiz_sheet(sheet_name):
     if sheet_name in global_flashcard_dict and len(global_flashcard_dict[sheet_name]) > 0:
         return
     
+
     try:
         wb = app.config["WORKBOOK"]
         sheet = wb.worksheet(sheet_name)
@@ -176,6 +177,7 @@ def read_quiz_sheet(sheet_name):
         return render_template("error.html", details="Something went wrong with Google Sheets while reading Contents sheet")
     
     for row in all_vals[1:]:
+        global_flashcard_dict[sheet_name] = []
         question_obj = question_from_csv_line(row)
         global_flashcard_dict[sheet_name].append(question_obj)
     
