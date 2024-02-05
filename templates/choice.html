@@ -1,0 +1,15 @@
+{% extends "base_template.html" %}
+{%block title %}{{my_title}}{% endblock %}
+
+{% block content %}
+
+
+<form class="" action="process_choice" method="post">
+      {% for i in range(choices_cnt) %}
+            <input class="button0" type="submit" value="{{choices[i]}}" name="choice">
+            <br>
+
+      {% endfor %}
+      
+</form>
+{% endblock %}
