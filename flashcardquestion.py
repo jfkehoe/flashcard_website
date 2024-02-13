@@ -12,6 +12,9 @@ def question_from_csv_line(in_line):
        my_question.right_answer = cleaned_line[1]
        my_question.wrong_answers = cleaned_line[2:]
 
+    if my_question.right_answer in my_question.wrong_answers:
+        my_question.wrong_answers.remove(my_question.right_answer)
+        
     my_question.update_type()
     return my_question
 
