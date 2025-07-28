@@ -51,6 +51,19 @@ def calc_answer(in_prob, in_ans=None):
     else:
         return r0
 
+#a little time server for another project
+@app.route("/time", methods=["POST", "GET"])
+def my_time():
+    session.clear()
+    now = datetime.now()
+
+    return render_template("time.html",
+                           year=now.year,
+                           month=now.month,
+                           day=now.day, 
+                           weekday=now.weekday(),
+                           hour=now.hour,
+                           minute=now.minute)
 
 
 @app.route("/summary")
